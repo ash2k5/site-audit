@@ -2,13 +2,13 @@
 
 Generates a structured PDF audit report from a website URL in under 60 seconds. Designed for sales outreach.
 
-> **Test keys included.** This repo ships with a working `.env` for evaluation. For your own deployment, replace the keys with your own.
+> **Test keys included.** This repo has a working `.env` for evaluation. For your own deployment, replace the keys with your own.
 
 ## Requirements
 
 - Python 3.10+
-- [Groq API key](https://console.groq.com) (free tier sufficient)
-- [Google PageSpeed API key](https://developers.google.com/speed/docs/insights/v5/get-started) (optional — raises daily quota from 400 to 25,000 requests)
+- [Groq API key](https://console.groq.com) (free tier)
+- [Google PageSpeed API key](https://developers.google.com/speed/docs/insights/v5/get-started)
 
 ## Setup
 
