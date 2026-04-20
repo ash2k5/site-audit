@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Site Audit — {{ report.company_name }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 11px;
+    color: #1e293b;
+    background: #fff;
+  }
+
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0ea5e9 100%);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 60px 56px;
+    page-break-after: always;
+  }
+
+  .cover-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #7dd3fc;
+  }
+
+  .cover-main {
+    margin-top: auto;
+    margin-bottom: 0;
+  }
+
+  .cover-title {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  .cover-url {
+    font-size: 13px;
+    color: #bae6fd;
+    margin-bottom: 40px;
+  }
+
+  .cover-score-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .cover-score-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px;
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .cover-score-card .score-val {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .cover-score-card .score-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .cover-summary {
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+    max-width: 580px;
+    border-left: 3px solid #0ea5e9;
+    padding-left: 16px;
+  }
+
+  /* Pages */
+  .page {
+    padding: 48px 56px;
+  }
+
+  .page-break { page-break-after: always; }
+
+  .section-header {
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  /* Screenshot */
+  .screenshot-page {
+    padding: 40px 56px;
+    page-break-after: always;
+  }
+
+  .screenshot-page img {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+
+  /* Score grid */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .score-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    background: #f8fafc;
+  }
+
+  .score-card .grade {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .score-card .score-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+
+  .score-card .score-cat {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  /* Category cards */
+  .cat-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .cat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .cat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .cat-card-grade {
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .cat-card-body {
+    padding: 14px 18px;
+  }
+
+  .cat-summary {
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .findings-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .findings-list li {
+    font-size: 11px;
+    color: #334155;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .findings-list li::before {
+    content: '-';
+    position: absolute;
+    left: 0;
+    color: #94a3b8;
+  }
+
+  /* Performance metrics */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .metric-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .metric-val {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .metric-context {
+    font-size: 9px;
+    color: #cbd5e1;
+    margin-top: 2px;
+  }
+
+  /* Quick wins */
+  .quick-wins {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+  }
+
+  .quick-wins-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #166534;
+    margin-bottom: 12px;
+  }
+
+  .quick-wins-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .quick-wins-list li {
+    font-size: 11px;
+    color: #14532d;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .quick-wins-list li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+    font-weight: 700;
+  }
+
+  /* Recommendations table */
+  .rec-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .rec-table th {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #64748b;
+    text-align: left;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+  }
+
+  .rec-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+    font-size: 11px;
+    color: #334155;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .rec-table tr:last-child td { border-bottom: none; }
+
+  .rec-title {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+    color: white;
+    white-space: nowrap;
+  }
+
+  /* CWV thresholds */
+  .threshold-good { color: #22c55e; }
+  .threshold-needs-improvement { color: #f59e0b; }
+  .threshold-poor { color: #ef4444; }
+
+  /* Two column layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .col-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #0f172a;
+  }
+
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .data-row:last-child { border-bottom: none; }
+  .data-label { color: #64748b; flex-shrink: 0; }
+  .data-val { font-weight: 600; color: #1e293b; text-align: right; }
+
+  .pill-yes { color: #22c55e; font-weight: 700; }
+  .pill-no  { color: #ef4444; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="cover-label">Site Audit Report</div>
+  <div class="cover-main">
+    <div class="cover-title">{{ report.company_name }}</div>
+    <div class="cover-url">{{ report.url }}</div>
+
+    <div class="cover-score-row">
+      <div class="cover-score-card">
+        <div class="score-val" style="color: {{ report.overall_score | score_color }}">{{ report.overall_score }}</div>
+        <div class="score-label">Overall</div>
+      </div>
+      <div class="cover-score-card">
+        <div class="score-val" style="color: {{ report.seo.score | score_color }}">{{ report.seo.grade }}</div>
+        <div class="score-label">SEO</div>
+      </div>
+      <div class="cover-score-card">
+        <div class="score-val" style="color: {{ report.performance.score | score_color }}">{{ report.performance.grade }}</div>
+        <div class="score-label">Performance</div>
+      </div>
+      <div class="cover-score-card">
+        <div class="score-val" style="color: {{ report.technical.score | score_color }}">{{ report.technical.grade }}</div>
+        <div class="score-label">Technical</div>
+      </div>
+      <div class="cover-score-card">
+        <div class="score-val" style="color: {{ report.content.score | score_color }}">{{ report.content.grade }}</div>
+        <div class="score-label">Content</div>
+      </div>
+    </div>
+
+    <div class="cover-summary">{{ report.executive_summary }}</div>
+  </div>
+</div>
+
+<!-- Screenshot -->
+{% if screenshot_b64 %}
+<div class="screenshot-page page-break">
+  <div class="section-header">
+    <div class="section-label">Visual Snapshot</div>
+    <div class="section-title">Homepage at Time of Audit</div>
+  </div>
+  <img src="data:image/png;base64,{{ screenshot_b64 }}" alt="Homepage screenshot">
+</div>
+{% endif %}
+
+<!-- Scorecard + Quick Wins -->
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-label">Executive Summary</div>
+    <div class="section-title">At a Glance</div>
+  </div>
+
+  <div class="score-grid">
+    {% for cat, label in [('seo','SEO'), ('performance','Performance'), ('technical','Technical'), ('content','Content')] %}
+    {% set c = report[cat] %}
+    <div class="score-card">
+      <div class="grade" style="color: {{ c.grade | grade_color }}">{{ c.grade }}</div>
+      <div class="score-num">{{ c.score }}/100</div>
+      <div class="score-cat">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="quick-wins">
+    <div class="quick-wins-title">Quick Wins — Highest Impact, Lowest Effort</div>
+    <ul class="quick-wins-list">
+      {% for win in report.quick_wins %}
+      <li>{{ win }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if report.raw_data %}
+  {% set tech = report.raw_data.technical %}
+  {% set seo = report.raw_data.seo %}
+  <div class="two-col">
+    <div>
+      <div class="col-title">Technical Signals</div>
+      <div class="data-row">
+        <span class="data-label">HTTPS</span>
+        <span class="{{ 'pill-yes' if tech.is_https else 'pill-no' }}">{{ 'Yes' if tech.is_https else 'No' }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">HTTP Status</span>
+        <span class="data-val">{{ tech.status_code }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Response Time</span>
+        <span class="data-val">{{ tech.response_time_ms }}ms</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Redirects</span>
+        <span class="data-val">{{ tech.redirect_count }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">robots.txt</span>
+        <span class="{{ 'pill-yes' if tech.has_robots_txt else 'pill-no' }}">{{ 'Present' if tech.has_robots_txt else 'Missing' }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">sitemap.xml</span>
+        <span class="{{ 'pill-yes' if tech.has_sitemap else 'pill-no' }}">{{ 'Present' if tech.has_sitemap else 'Missing' }}</span>
+      </div>
+    </div>
+    <div>
+      <div class="col-title">SEO Signals</div>
+      <div class="data-row">
+        <span class="data-label">Title length</span>
+        <span class="data-val">{{ seo.title|length }} chars</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Meta description</span>
+        <span class="data-val">{{ seo.meta_description|length }} chars</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">H1 tags</span>
+        <span class="data-val">{{ seo.h1_tags|length }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Schema markup</span>
+        <span class="{{ 'pill-yes' if seo.has_schema_markup else 'pill-no' }}">{{ 'Yes' if seo.has_schema_markup else 'No' }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Images missing alt</span>
+        <span class="data-val">{{ seo.images_missing_alt }} / {{ seo.total_images }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Word count</span>
+        <span class="data-val">{{ seo.word_count }}</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Category deep-dives -->
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-label">Category Analysis</div>
+    <div class="section-title">Detailed Findings</div>
+  </div>
+
+  {% for cat, label in [('seo','SEO'), ('performance','Performance'), ('technical','Technical'), ('content','Content & UX')] %}
+  {% set c = report[cat] %}
+  <div class="cat-card">
+    <div class="cat-card-header">
+      <div class="cat-card-title">{{ label }}</div>
+      <div class="cat-card-grade" style="color: {{ c.grade | grade_color }}">
+        {{ c.grade }}&nbsp;<span style="font-size:11px;font-weight:400;color:#64748b;">{{ c.score }}/100</span>
+      </div>
+    </div>
+    <div class="cat-card-body">
+      <div class="cat-summary">{{ c.summary }}</div>
+      <ul class="findings-list">
+        {% for finding in c.findings %}
+        <li>{{ finding }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Performance deep-dive -->
+{% if perf and (perf.mobile_score is not none or perf.desktop_score is not none) %}
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-label">Performance</div>
+    <div class="section-title">Core Web Vitals &amp; Lighthouse</div>
+  </div>
+
+  <div class="two-col" style="margin-bottom:24px;">
+    <div class="score-card">
+      <div class="grade" style="color: {{ (perf.mobile_score or 0) | score_color }}">
+        {{ perf.mobile_score if perf.mobile_score is not none else 'N/A' }}
+      </div>
+      <div class="score-num">Mobile Score</div>
+    </div>
+    <div class="score-card">
+      <div class="grade" style="color: {{ (perf.desktop_score or 0) | score_color }}">
+        {{ perf.desktop_score if perf.desktop_score is not none else 'N/A' }}
+      </div>
+      <div class="score-num">Desktop Score</div>
+    </div>
+  </div>
+
+  {% if mv %}
+  <div class="col-title" style="margin-bottom:12px;">Mobile Core Web Vitals</div>
+  <div class="metrics-grid">
+    {% if mv.lcp is not none %}
+    {% set lcp_s = mv.lcp / 1000 if mv.lcp > 100 else mv.lcp %}
+    <div class="metric-card">
+      <div class="metric-val {{ 'threshold-good' if lcp_s <= 2.5 else ('threshold-needs-improvement' if lcp_s <= 4.0 else 'threshold-poor') }}">
+        {{ "%.2f"|format(lcp_s) }}s
+      </div>
+      <div class="metric-label">LCP</div>
+      <div class="metric-context">Good &le; 2.5s</div>
+    </div>
+    {% endif %}
+    {% if mv.cls is not none %}
+    <div class="metric-card">
+      <div class="metric-val {{ 'threshold-good' if mv.cls <= 0.1 else ('threshold-needs-improvement' if mv.cls <= 0.25 else 'threshold-poor') }}">
+        {{ "%.3f"|format(mv.cls) }}
+      </div>
+      <div class="metric-label">CLS</div>
+      <div class="metric-context">Good &le; 0.1</div>
+    </div>
+    {% endif %}
+    {% if mv.fcp is not none %}
+    {% set fcp_s = mv.fcp / 1000 if mv.fcp > 100 else mv.fcp %}
+    <div class="metric-card">
+      <div class="metric-val {{ 'threshold-good' if fcp_s <= 1.8 else ('threshold-needs-improvement' if fcp_s <= 3.0 else 'threshold-poor') }}">
+        {{ "%.2f"|format(fcp_s) }}s
+      </div>
+      <div class="metric-label">FCP</div>
+      <div class="metric-context">Good &le; 1.8s</div>
+    </div>
+    {% endif %}
+    {% if mv.ttfb is not none %}
+    <div class="metric-card">
+      <div class="metric-val {{ 'threshold-good' if mv.ttfb <= 800 else ('threshold-needs-improvement' if mv.ttfb <= 1800 else 'threshold-poor') }}">
+        {{ "%.0f"|format(mv.ttfb) }}ms
+      </div>
+      <div class="metric-label">TTFB</div>
+      <div class="metric-context">Good &le; 800ms</div>
+    </div>
+    {% endif %}
+    {% if mv.speed_index is not none %}
+    {% set si_s = mv.speed_index / 1000 if mv.speed_index > 100 else mv.speed_index %}
+    <div class="metric-card">
+      <div class="metric-val">{{ "%.2f"|format(si_s) }}s</div>
+      <div class="metric-label">Speed Index</div>
+      <div class="metric-context">Good &le; 3.4s</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if perf.opportunities %}
+  <div class="col-title" style="margin: 20px 0 10px;">Top Opportunities</div>
+  <ul class="findings-list" style="margin-bottom:16px;">
+    {% for opp in perf.opportunities %}
+    <li>{{ opp }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if perf.diagnostics %}
+  <div class="col-title" style="margin: 16px 0 10px;">Diagnostics</div>
+  <ul class="findings-list">
+    {% for d in perf.diagnostics %}
+    <li>{{ d }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Recommendations -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-label">Action Plan</div>
+    <div class="section-title">Prioritised Recommendations</div>
+  </div>
+
+  <table class="rec-table">
+    <colgroup>
+      <col style="width: 4%">
+      <col style="width: 63%">
+      <col style="width: 16%">
+      <col style="width: 17%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Recommendation</th>
+        <th>Impact</th>
+        <th>Effort</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rec in report.recommendations %}
+      <tr>
+        <td style="color:#94a3b8;font-weight:700;">{{ loop.index }}</td>
+        <td>
+          <div class="rec-title">{{ rec.title }}</div>
+          <div style="color:#64748b;">{{ rec.detail }}</div>
+        </td>
+        <td><span class="badge" style="background: {{ rec.impact | level_color }}">{{ rec.impact }}</span></td>
+        <td><span class="badge" style="background: {{ rec.effort | level_color }}">{{ rec.effort }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
