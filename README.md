@@ -1,6 +1,8 @@
 # AI Site Audit Generator
 
-Generates a structured PDF audit report from a website URL. Designed for sales outreach — produces a professional, data-driven report in under 60 seconds.
+Generates a structured PDF audit report from a website URL in under 60 seconds. Designed for sales outreach.
+
+> **Test keys included.** This repo ships with a working `.env` for evaluation. For your own deployment, replace the keys with your own.
 
 ## Requirements
 
@@ -13,10 +15,7 @@ Generates a structured PDF audit report from a website URL. Designed for sales o
 ```bash
 pip install -r requirements.txt
 playwright install chromium
-cp .env.example .env
 ```
-
-Edit `.env` and set `GROQ_API_KEY`. `PAGESPEED_API_KEY` is optional.
 
 ## Usage
 
@@ -52,7 +51,7 @@ site_audit/
 ├── pdf_generator.py   # Jinja2 template + Playwright PDF rendering
 ├── models.py          # Shared dataclasses
 ├── requirements.txt
-├── .env.example
+├── .env               # API keys (test keys included)
 └── templates/
     └── report.html    # PDF report template
 ```
