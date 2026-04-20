@@ -1,6 +1,6 @@
 # AI Site Audit Generator
 
-Generates a structured PDF audit report from a website URL in under 60 seconds. Designed for sales outreach.
+Generates a structured PDF audit report from a website URL, designed for sales outreach.
 
 > **Test keys included.** This repo has a working `.env` for evaluation. For your own deployment, replace the keys with your own.
 
