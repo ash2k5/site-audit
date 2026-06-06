@@ -1,15 +1,17 @@
+import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
 
 import requests
 
-from models import CoreWebVitals, PerformanceData
+from .models import CoreWebVitals, PerformanceData
+
+log = logging.getLogger(__name__)
 
 PAGESPEED_API = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 
 
-def get_pagespeed_data(url: str, api_key: Optional[str] = None) -> PerformanceData:
+def get_pagespeed_data(url: str, api_key: str | None = None) -> PerformanceData:
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {
             executor.submit(_fetch, url, strategy, api_key): strategy
@@ -32,10 +34,15 @@ def get_pagespeed_data(url: str, api_key: Optional[str] = None) -> PerformanceDa
                 if audit.get("details", {}).get("type") == "opportunity":
                     opportunities.append(f"{title}: {desc}".strip(": "))
                 elif audit_id in (
-                    "uses-long-cache-ttl", "unminified-css", "unminified-javascript",
-                    "render-blocking-resources", "unused-css-rules",
-                    "unused-javascript", "uses-optimized-images",
-                    "uses-webp-images", "efficient-animated-content",
+                    "uses-long-cache-ttl",
+                    "unminified-css",
+                    "unminified-javascript",
+                    "render-blocking-resources",
+                    "unused-css-rules",
+                    "unused-javascript",
+                    "uses-optimized-images",
+                    "uses-webp-images",
+                    "efficient-animated-content",
                 ):
                     diagnostics.append(f"{title}: {desc}".strip(": "))
 
@@ -48,7 +55,7 @@ def get_pagespeed_data(url: str, api_key: Optional[str] = None) -> PerformanceDa
     )
 
 
-def _fetch(url: str, strategy: str, api_key: Optional[str]) -> Optional[dict]:
+def _fetch(url: str, strategy: str, api_key: str | None) -> dict | None:
     params = {"url": url, "strategy": strategy}
     if api_key:
         params["key"] = api_key
@@ -59,31 +66,28 @@ def _fetch(url: str, strategy: str, api_key: Optional[str]) -> Optional[dict]:
             return resp.json()
         except requests.RequestException as e:
             if attempt == 2:
-                print(f"  Warning: PageSpeed {strategy} failed — {e}")
+                log.warning("PageSpeed %s failed: %s", strategy, e)
                 return None
             time.sleep(attempt + 1)
     return None
 
 
-def _score(data: Optional[dict]) -> Optional[int]:
+def _score(data: dict | None) -> int | None:
     if not data:
         return None
     score = (
-        data.get("lighthouseResult", {})
-        .get("categories", {})
-        .get("performance", {})
-        .get("score")
+        data.get("lighthouseResult", {}).get("categories", {}).get("performance", {}).get("score")
     )
     return int(score * 100) if score is not None else None
 
 
-def _vitals(data: Optional[dict]) -> CoreWebVitals:
+def _vitals(data: dict | None) -> CoreWebVitals:
     if not data:
         return CoreWebVitals()
 
     audits = data.get("lighthouseResult", {}).get("audits", {})
 
-    def num(audit_id: str) -> Optional[float]:
+    def num(audit_id: str) -> float | None:
         val = audits.get(audit_id, {}).get("numericValue")
         return round(val, 3) if val is not None else None
 

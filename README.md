@@ -1,58 +1,67 @@
 # AI Site Audit Generator
 
-Generates a structured PDF audit report from a website URL. Designed for sales outreach — produces a professional, data-driven report in under 60 seconds.
+Generate a PDF audit of any website (SEO, performance, technical, content) for
+sales outreach. It scrapes the page, pulls real Google PageSpeed metrics, has a
+Groq LLM turn the data into graded findings and recommendations, and renders a
+PDF. Runs as a CLI or a small web service.
+
+Pipeline: validate URL → scrape (requests + BeautifulSoup) and PageSpeed
+(Google) → Groq structured analysis → Jinja2 + Playwright PDF.
 
 ## Requirements
 
 - Python 3.10+
-- [Groq API key](https://console.groq.com) (free tier sufficient)
-- [Google PageSpeed API key](https://developers.google.com/speed/docs/insights/v5/get-started) (optional — raises daily quota from 400 to 25,000 requests)
+- A free [Groq API key](https://console.groq.com)
+- Optional: a [Google PageSpeed key](https://console.cloud.google.com/apis/library/pagespeedonline.googleapis.com) (raises the request quota)
 
 ## Setup
 
 ```bash
-pip install -r requirements.txt
-playwright install chromium
-cp .env.example .env
+uv venv && uv pip install -e ".[dev]"
+uv run playwright install chromium
+cp .env.example .env            # then add your GROQ_API_KEY
 ```
 
-Edit `.env` and set `GROQ_API_KEY`. `PAGESPEED_API_KEY` is optional.
+Plain pip works too: `pip install -e ".[dev]"` inside an activated venv.
 
-## Usage
+## CLI
 
-```
-python main.py <url> [-o output.pdf] [--no-screenshot]
-```
-
-**Examples**
 ```bash
-python main.py example.com
-python main.py https://acme.com -o acme_audit.pdf
-python main.py example.com --no-screenshot
+site-audit example.com
+site-audit https://acme.com -o acme.pdf --no-screenshot
 ```
 
-Output defaults to `audit_<domain>.pdf` in the current directory.
+`--allow-private` permits localhost. The PDF path prints to stdout, progress to stderr.
 
-## Report Contents
+## Web service
 
-- Cover page: overall score and per-category grades
-- Homepage screenshot
-- Per-category findings: SEO, Performance, Technical, Content
-- Core Web Vitals (LCP, CLS, FCP, TTFB)
-- Quick wins and prioritised recommendations table
-
-## Project Structure
-
+```bash
+uv run uvicorn site_audit.web:app --reload
 ```
-site_audit/
-├── main.py            # CLI entry point
-├── scraper.py         # HTML/SEO extraction via requests + BeautifulSoup
-├── pagespeed.py       # Google PageSpeed Insights API (Core Web Vitals)
-├── analyzer.py        # Groq API — structured audit analysis
-├── pdf_generator.py   # Jinja2 template + Playwright PDF rendering
-├── models.py          # Shared dataclasses
-├── requirements.txt
-├── .env.example
-└── templates/
-    └── report.html    # PDF report template
+
+`GET /` form · `POST /audit` returns the PDF · `GET /api/audit?url=` returns JSON ·
+`GET /healthz`. Non-public hosts are refused (SSRF guard).
+
+## Docker
+
+```bash
+docker build -t site-audit .
+docker run -p 8000:8000 -e GROQ_API_KEY=your_key site-audit
 ```
+
+## Deploy (Render)
+
+`render.yaml` defines a free Docker web service. Create a Render Blueprint from
+the repo, set `GROQ_API_KEY` in the dashboard (never commit it), and Render
+builds and health-checks `/healthz`.
+
+## Test
+
+```bash
+uv run pytest          # offline; all network is mocked
+uv run ruff check .
+```
+
+## License
+
+[MIT](LICENSE)

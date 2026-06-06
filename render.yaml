@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: site-audit
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PAGESPEED_API_KEY
+        sync: false
+      - key: PLAYWRIGHT_NO_SANDBOX
+        value: "1"

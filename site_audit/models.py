@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -23,18 +22,18 @@ class SEOData:
 
 @dataclass
 class CoreWebVitals:
-    lcp: Optional[float] = None
-    cls: Optional[float] = None
-    fid: Optional[float] = None
-    fcp: Optional[float] = None
-    ttfb: Optional[float] = None
-    speed_index: Optional[float] = None
+    lcp: float | None = None
+    cls: float | None = None
+    fid: float | None = None
+    fcp: float | None = None
+    ttfb: float | None = None
+    speed_index: float | None = None
 
 
 @dataclass
 class PerformanceData:
-    mobile_score: Optional[int] = None
-    desktop_score: Optional[int] = None
+    mobile_score: int | None = None
+    desktop_score: int | None = None
     mobile_vitals: CoreWebVitals = field(default_factory=CoreWebVitals)
     opportunities: list[str] = field(default_factory=list)
     diagnostics: list[str] = field(default_factory=list)
@@ -87,4 +86,4 @@ class AuditReport:
     content: CategoryScore
     quick_wins: list[str]
     recommendations: list[Recommendation]
-    raw_data: Optional[AuditInput] = None
+    raw_data: AuditInput | None = None

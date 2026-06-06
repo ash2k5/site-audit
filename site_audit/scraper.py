@@ -1,3 +1,4 @@
+import logging
 import re
 import time
 from urllib.parse import urljoin, urlparse
@@ -5,7 +6,10 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
-from models import SEOData, TechnicalData
+from .models import SEOData, TechnicalData
+from .validation import normalize_url
+
+log = logging.getLogger(__name__)
 
 HEADERS = {
     "User-Agent": (
@@ -16,17 +20,27 @@ HEADERS = {
 }
 
 CTA_KEYWORDS = [
-    "get started", "book", "schedule", "contact us", "free trial",
-    "sign up", "request", "demo", "buy now", "learn more", "get a quote",
-    "try for free", "start now", "call us",
+    "get started",
+    "book",
+    "schedule",
+    "contact us",
+    "free trial",
+    "sign up",
+    "request",
+    "demo",
+    "buy now",
+    "learn more",
+    "get a quote",
+    "try for free",
+    "start now",
+    "call us",
 ]
 
 CONTACT_KEYWORDS = ["tel:", "mailto:", "phone", "email", "contact"]
 
 
 def scrape_site(url: str) -> tuple[SEOData, TechnicalData]:
-    if not urlparse(url).scheme:
-        url = "https://" + url
+    url = normalize_url(url)
 
     resp, response_time = _fetch_page(url)
     final_url = resp.url
@@ -53,7 +67,7 @@ def _fetch_page(url: str) -> tuple[requests.Response, float]:
             return resp, (time.time() - t0) * 1000
         except requests.RequestException as e:
             if attempt == 2:
-                raise RuntimeError(f"Failed to fetch {url}: {e}")
+                raise RuntimeError(f"Failed to fetch {url}: {e}") from e
             time.sleep(attempt + 1)
     raise RuntimeError(f"Failed to fetch {url}")
 
@@ -122,7 +136,9 @@ def _check_url(base_url: str, path: str) -> bool:
     try:
         r = requests.head(
             f"{parsed.scheme}://{parsed.netloc}{path}",
-            headers=HEADERS, timeout=5, allow_redirects=True,
+            headers=HEADERS,
+            timeout=5,
+            allow_redirects=True,
         )
         return r.status_code < 400
     except requests.RequestException:

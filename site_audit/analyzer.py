@@ -1,10 +1,11 @@
 import json
-import os
 import time
 
 from groq import Groq
 
-from models import AuditInput, AuditReport, CategoryScore, Recommendation
+from .models import AuditInput, AuditReport, CategoryScore, Recommendation
+
+MODEL = "llama-3.3-70b-versatile"
 
 _CATEGORY_SCHEMA = {
     "type": "object",
@@ -25,9 +26,15 @@ _TOOL = {
         "parameters": {
             "type": "object",
             "required": [
-                "company_name", "overall_score", "executive_summary",
-                "seo", "performance", "technical", "content",
-                "quick_wins", "recommendations",
+                "company_name",
+                "overall_score",
+                "executive_summary",
+                "seo",
+                "performance",
+                "technical",
+                "content",
+                "quick_wins",
+                "recommendations",
             ],
             "properties": {
                 "company_name": {"type": "string"},
@@ -45,8 +52,14 @@ _TOOL = {
                         "required": ["title", "impact", "effort", "detail"],
                         "properties": {
                             "title": {"type": "string"},
-                            "impact": {"type": "string", "enum": ["High", "Medium", "Low"]},
-                            "effort": {"type": "string", "enum": ["High", "Medium", "Low"]},
+                            "impact": {
+                                "type": "string",
+                                "enum": ["High", "Medium", "Low"],
+                            },
+                            "effort": {
+                                "type": "string",
+                                "enum": ["High", "Medium", "Low"],
+                            },
                             "detail": {"type": "string"},
                         },
                     },
@@ -62,6 +75,17 @@ _SYSTEM = (
     "Frame findings as opportunities the prospect has not yet captured. "
     "Tone: professional, direct, credibility-building."
 )
+
+
+def _fmt_seconds(ms: float | None) -> str:
+    if ms is None:
+        return "N/A"
+    seconds = ms / 1000 if ms > 100 else ms
+    return f"{seconds:.2f}s"
+
+
+def _fmt_ms(ms: float | None) -> str:
+    return f"{ms:.0f}ms" if ms is not None else "N/A"
 
 
 def _build_prompt(audit: AuditInput) -> str:
@@ -108,10 +132,10 @@ def _build_prompt(audit: AuditInput) -> str:
         lines += [
             "",
             "### Mobile Core Web Vitals",
-            f"- LCP: {mv.lcp / 1000:.2f}s" if mv.lcp > 100 else f"- LCP: {mv.lcp:.2f}s",
-            f"- CLS: {mv.cls}" if mv.cls is not None else "- CLS: N/A",
-            f"- FCP: {mv.fcp / 1000:.2f}s" if mv.fcp is not None and mv.fcp > 100 else f"- FCP: {mv.fcp:.2f}s" if mv.fcp is not None else "- FCP: N/A",
-            f"- TTFB: {mv.ttfb:.0f}ms" if mv.ttfb is not None else "- TTFB: N/A",
+            f"- LCP: {_fmt_seconds(mv.lcp)}",
+            f"- CLS: {mv.cls if mv.cls is not None else 'N/A'}",
+            f"- FCP: {_fmt_seconds(mv.fcp)}",
+            f"- TTFB: {_fmt_ms(mv.ttfb)}",
         ]
 
     if perf.opportunities:
@@ -123,32 +147,41 @@ def _build_prompt(audit: AuditInput) -> str:
 
 
 def _call_groq(client: Groq, prompt: str) -> dict:
+    user_content = f"Produce a site audit report for the following data:\n\n{prompt}"
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model=MODEL,
                 messages=[
                     {"role": "system", "content": _SYSTEM},
-                    {"role": "user", "content": f"Produce a site audit report for the following data:\n\n{prompt}"},
+                    {"role": "user", "content": user_content},
                 ],
                 tools=[_TOOL],
-                tool_choice={"type": "function", "function": {"name": "render_audit_report"}},
+                tool_choice={
+                    "type": "function",
+                    "function": {"name": "render_audit_report"},
+                },
             )
             return json.loads(response.choices[0].message.tool_calls[0].function.arguments)
         except Exception as e:
             if attempt == 2:
-                raise RuntimeError(f"LLM analysis failed: {e}")
+                raise RuntimeError(f"LLM analysis failed: {e}") from e
             time.sleep(attempt + 1)
     raise RuntimeError("LLM analysis failed")
 
 
-def analyze_site(audit: AuditInput) -> AuditReport:
-    client = Groq(api_key=os.environ["GROQ_API_KEY"])
+def analyze_site(audit: AuditInput, *, api_key: str) -> AuditReport:
+    client = Groq(api_key=api_key)
     data = _call_groq(client, _build_prompt(audit))
 
     def cat(key: str) -> CategoryScore:
         c = data[key]
-        return CategoryScore(score=c["score"], grade=c["grade"], summary=c["summary"], findings=c["findings"])
+        return CategoryScore(
+            score=c["score"],
+            grade=c["grade"],
+            summary=c["summary"],
+            findings=c["findings"],
+        )
 
     return AuditReport(
         url=audit.url,
@@ -161,7 +194,12 @@ def analyze_site(audit: AuditInput) -> AuditReport:
         content=cat("content"),
         quick_wins=data["quick_wins"],
         recommendations=[
-            Recommendation(title=r["title"], impact=r["impact"], effort=r["effort"], detail=r["detail"])
+            Recommendation(
+                title=r["title"],
+                impact=r["impact"],
+                effort=r["effort"],
+                detail=r["detail"],
+            )
             for r in data["recommendations"]
         ],
         raw_data=audit,
