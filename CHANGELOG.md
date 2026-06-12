@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026-06-12
 
 Hardened the public web service ahead of deploy:
 
@@ -8,13 +8,13 @@ Hardened the public web service ahead of deploy:
   connection to its resolved IP, closing the redirect-bypass and DNS-rebinding
   gaps. The hosted PDF no longer takes a live page screenshot.
 - Added per-IP rate limiting, a concurrent-audit cap, a daily audit ceiling,
-  request-size and URL-length limits, and an optional `AUDIT_API_KEY`.
+  request-size and URL-length limits.
 - Scraped content is truncated and framed as untrusted in the LLM prompt; the
   Groq client has an explicit timeout; a malformed model response fails closed.
 - Client-facing errors are generic; full detail stays in server logs.
 - CI runs mypy and pip-audit. Default branch is now `main`.
 
-## 1.0.0 - 2026-06-05
+## 2026-06-05
 
 Packaged the original audit script into the `site_audit` package with a CLI and a
 FastAPI web service, plus a pytest suite and Docker/Render deploy. The hosted
