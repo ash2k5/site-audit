@@ -50,12 +50,6 @@ docker build -t site-audit .
 docker run -p 8000:8000 -e GROQ_API_KEY=your_key site-audit
 ```
 
-## Deploy (Render)
-
-`render.yaml` defines a free Docker web service. Create a Render Blueprint from
-the repo, set `GROQ_API_KEY` in the dashboard (never commit it), and Render
-builds and health-checks `/healthz`.
-
 ## Test
 
 ```bash
