@@ -28,6 +28,8 @@ dev = [
     "pytest-cov>=5.0",
     "httpx>=0.27",
     "ruff>=0.6",
+    "mypy>=1.11",
+    "pip-audit>=2.7",
 ]
 
 [project.scripts]
@@ -47,6 +49,26 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W"]
 
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# BeautifulSoup's .get() returns str/list/None unions; the HTML access is
+# runtime-correct. Start lenient here and tighten later.
+module = "site_audit.scraper"
+disable_error_code = ["assignment", "misc", "union-attr", "type-var", "call-overload", "return-value"]
+
+[[tool.mypy.overrides]]
+# Groq's typed SDK rejects our plain-dict tool schema; the call is correct.
+module = "site_audit.analyzer"
+disable_error_code = ["call-overload"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    # Starlette's TestClient warns about httpx; third-party deprecation, not our code.
+    "ignore:Using `httpx` with `starlette.testclient`",
+]
