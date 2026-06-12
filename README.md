@@ -40,7 +40,8 @@ uv run uvicorn site_audit.web:app --reload
 ```
 
 `GET /` form · `POST /audit` returns the PDF · `GET /api/audit?url=` returns JSON ·
-`GET /healthz`. Non-public hosts are refused (SSRF guard).
+`GET /healthz`. Non-public hosts are refused (SSRF guard), and requests are
+rate-limited per IP.
 
 ## Docker
 
