@@ -6,6 +6,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
+from . import safe_http
 from .models import SEOData, TechnicalData
 from .validation import normalize_url
 
@@ -63,7 +64,7 @@ def _fetch_page(url: str) -> tuple[requests.Response, float]:
     for attempt in range(3):
         try:
             t0 = time.time()
-            resp = requests.get(url, headers=HEADERS, timeout=15, allow_redirects=True)
+            resp = safe_http.safe_request("GET", url, headers=HEADERS, timeout=15)
             return resp, (time.time() - t0) * 1000
         except requests.RequestException as e:
             if attempt == 2:
@@ -134,12 +135,12 @@ def _meta_content(soup: BeautifulSoup, property_name: str) -> str:
 def _check_url(base_url: str, path: str) -> bool:
     parsed = urlparse(base_url)
     try:
-        r = requests.head(
+        r = safe_http.safe_request(
+            "HEAD",
             f"{parsed.scheme}://{parsed.netloc}{path}",
             headers=HEADERS,
             timeout=5,
-            allow_redirects=True,
         )
         return r.status_code < 400
-    except requests.RequestException:
+    except (requests.RequestException, ValueError):
         return False

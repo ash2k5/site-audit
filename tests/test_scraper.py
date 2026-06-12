@@ -63,7 +63,25 @@ def test_fetch_page_failure(monkeypatch):
     def boom(*a, **k):
         raise requests.RequestException("down")
 
-    monkeypatch.setattr(scraper.requests, "get", boom)
+    monkeypatch.setattr(scraper.safe_http, "safe_request", boom)
     monkeypatch.setattr(scraper.time, "sleep", lambda s: None)
     with pytest.raises(RuntimeError):
         scraper._fetch_page("https://acme.com")
+
+
+def test_fetch_page_ssrf_propagates(monkeypatch):
+    def refuse(*a, **k):
+        raise ValueError("Refusing to fetch non-public address")
+
+    monkeypatch.setattr(scraper.safe_http, "safe_request", refuse)
+    monkeypatch.setattr(scraper.time, "sleep", lambda s: None)
+    with pytest.raises(ValueError):
+        scraper._fetch_page("https://acme.com")
+
+
+def test_check_url_swallows_ssrf(monkeypatch):
+    def refuse(*a, **k):
+        raise ValueError("Refusing to fetch non-public address")
+
+    monkeypatch.setattr(scraper.safe_http, "safe_request", refuse)
+    assert scraper._check_url("https://acme.com", "/robots.txt") is False
