@@ -2,14 +2,16 @@ import logging
 import os
 import tempfile
 import threading
+from contextlib import contextmanager
 from dataclasses import asdict
 
-from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from starlette.background import BackgroundTask
 
 from . import __version__
 from .audit import build_report, safe_filename
+from .limits import DailyBudget, RateLimiter, int_env
 from .models import AuditReport
 from .pdf_generator import generate_pdf
 
@@ -17,8 +19,49 @@ log = logging.getLogger("site_audit")
 
 app = FastAPI(title="AI Site Audit Generator", version=__version__)
 
+_API_KEY = os.getenv("AUDIT_API_KEY")
+_MAX_BODY_BYTES = int_env("MAX_BODY_BYTES", 16384)
+
+_rate_limiter = RateLimiter(int_env("RATE_LIMIT_PER_MINUTE", 5))
+_daily_budget = DailyBudget(int_env("DAILY_AUDIT_LIMIT", 200))
+# Cap concurrent audits so a flood is rejected fast instead of queueing until OOM.
+_audit_slots = threading.BoundedSemaphore(int_env("MAX_CONCURRENT_AUDITS", 2))
 # Chromium is memory hungry; serialize PDF rendering to survive small instances.
 _pdf_lock = threading.Semaphore(1)
+
+
+@app.middleware("http")
+async def _limit_body_size(request: Request, call_next):
+    length = request.headers.get("content-length")
+    if length and length.isdigit() and int(length) > _MAX_BODY_BYTES:
+        return PlainTextResponse("Request body too large", status_code=413)
+    return await call_next(request)
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _guard(request: Request) -> None:
+    if _API_KEY and request.headers.get("x-api-key") != _API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    if not _rate_limiter.allow(_client_ip(request)):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again shortly.")
+    if not _daily_budget.allow():
+        raise HTTPException(status_code=503, detail="Daily audit limit reached. Try again later.")
+
+
+@contextmanager
+def _audit_slot():
+    if not _audit_slots.acquire(blocking=False):
+        raise HTTPException(status_code=429, detail="Server is busy. Try again shortly.")
+    try:
+        yield
+    finally:
+        _audit_slots.release()
 
 
 @app.get("/healthz")
@@ -31,23 +74,27 @@ def index() -> str:
     return _FORM_HTML
 
 
-@app.get("/api/audit")
+@app.get("/api/audit", dependencies=[Depends(_guard)])
 def api_audit(url: str) -> dict:
-    return asdict(_build(url))
+    with _audit_slot():
+        return asdict(_build(url))
 
 
-@app.post("/audit")
+@app.post("/audit", dependencies=[Depends(_guard)])
 def audit(url: str = Form(...)) -> FileResponse:
-    report = _build(url)
-    tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
-    tmp.close()
-    try:
-        with _pdf_lock:
-            generate_pdf(report, tmp.name, skip_screenshot=False)
-    except Exception as e:
-        os.unlink(tmp.name)
-        log.exception("PDF generation failed")
-        raise HTTPException(status_code=502, detail=f"PDF generation failed: {e}") from e
+    with _audit_slot():
+        report = _build(url)
+        tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
+        tmp.close()
+        try:
+            with _pdf_lock:
+                # No live screenshot on the public path: Chromium navigation is a
+                # second, unpinnable SSRF vector. The CLI keeps the screenshot.
+                generate_pdf(report, tmp.name, skip_screenshot=True)
+        except Exception as e:
+            os.unlink(tmp.name)
+            log.exception("PDF generation failed")
+            raise HTTPException(status_code=502, detail="PDF generation failed") from e
     return FileResponse(
         tmp.name,
         media_type="application/pdf",
@@ -65,7 +112,8 @@ def _build(url: str) -> AuditReport:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except RuntimeError as e:
-        raise HTTPException(status_code=502, detail=str(e)) from e
+        log.exception("Audit pipeline failed")
+        raise HTTPException(status_code=502, detail="Audit failed. Try again later.") from e
 
 
 _FORM_HTML = """<!doctype html>
