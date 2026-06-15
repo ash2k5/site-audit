@@ -2,6 +2,16 @@
 
 ## 2026-06-12
 
+Reworked the project into a monorepo (`api/` here + a `web/` Next.js frontend) and
+turned the API into a typed JSON service:
+
+- The audit models are now Pydantic, so `/api/audit` returns a fully typed response
+  and the OpenAPI schema describes every field (the frontend generates its client
+  from it). The inline HTML form was removed; `/` returns a small service descriptor.
+- The PDF report was redesigned on the Cinematic Editorial design system: light print
+  theme, Bodoni display headings, Inter body, tabular figures, sharp edges, and
+  semantic colors from the shared tokens.
+
 Hardened the public web service ahead of deploy:
 
 - SSRF guard now re-validates every fetch and redirect hop and pins each
