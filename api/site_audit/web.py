@@ -3,10 +3,9 @@ import os
 import tempfile
 import threading
 from contextlib import contextmanager
-from dataclasses import asdict
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.background import BackgroundTask
 
 from . import __version__
@@ -17,7 +16,11 @@ from .pdf_generator import generate_pdf
 
 log = logging.getLogger("site_audit")
 
-app = FastAPI(title="AI Site Audit Generator", version=__version__)
+app = FastAPI(
+    title="AI Site Audit Generator",
+    version=__version__,
+    description="Scrape a URL, measure it, and return an LLM-scored audit as JSON or PDF.",
+)
 
 _API_KEY = os.getenv("AUDIT_API_KEY")
 _MAX_BODY_BYTES = int_env("MAX_BODY_BYTES", 16384)
@@ -69,15 +72,24 @@ def healthz() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/", response_class=HTMLResponse)
-def index() -> str:
-    return _FORM_HTML
+@app.get("/")
+def index() -> dict:
+    return {
+        "service": "AI Site Audit Generator",
+        "version": __version__,
+        "docs": "/docs",
+        "endpoints": {
+            "audit_json": "/api/audit?url=",
+            "audit_pdf": "POST /audit (form field: url)",
+            "health": "/healthz",
+        },
+    }
 
 
 @app.get("/api/audit", dependencies=[Depends(_guard)])
-def api_audit(url: str) -> dict:
+def api_audit(url: str) -> AuditReport:
     with _audit_slot():
-        return asdict(_build(url))
+        return _build(url)
 
 
 @app.post("/audit", dependencies=[Depends(_guard)])
@@ -114,41 +126,3 @@ def _build(url: str) -> AuditReport:
     except RuntimeError as e:
         log.exception("Audit pipeline failed")
         raise HTTPException(status_code=502, detail="Audit failed. Try again later.") from e
-
-
-_FORM_HTML = """<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Site Audit Generator</title>
-<style>
-  body { font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-         background: #0f172a; color: #e2e8f0; display: flex; min-height: 100vh;
-         margin: 0; align-items: center; justify-content: center; }
-  main { max-width: 520px; padding: 40px; }
-  h1 { font-size: 28px; margin: 0 0 12px; }
-  p { line-height: 1.6; color: #94a3b8; }
-  form { display: flex; gap: 10px; margin: 24px 0 10px; flex-wrap: wrap; }
-  input { flex: 1; min-width: 220px; padding: 12px 14px; border-radius: 8px;
-          border: 1px solid #334155; background: #1e293b; color: #e2e8f0; font-size: 15px; }
-  button { padding: 12px 20px; border: 0; border-radius: 8px; background: #0ea5e9;
-           color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .hint { font-size: 13px; }
-</style>
-</head>
-<body>
-<main>
-  <h1>AI Site Audit Generator</h1>
-  <p>Enter a website URL to generate a PDF audit covering SEO, performance,
-     technical health, and content. It runs a live PageSpeed and AI analysis,
-     so it can take up to a minute.</p>
-  <form method="post" action="/audit">
-    <input type="url" name="url" placeholder="https://example.com" required>
-    <button type="submit">Generate audit</button>
-  </form>
-  <p class="hint">The PDF downloads when the analysis finishes. Keep this tab open.</p>
-</main>
-</body>
-</html>
-"""
