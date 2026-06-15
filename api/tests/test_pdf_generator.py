@@ -2,17 +2,17 @@ from site_audit.pdf_generator import _grade_color, _level_color, _score_color, r
 
 
 def test_score_color_thresholds():
-    assert _score_color(85) == "#22c55e"
-    assert _score_color(65) == "#f59e0b"
-    assert _score_color(45) == "#f97316"
-    assert _score_color(20) == "#ef4444"
+    assert _score_color(85) == "#2e7d52"
+    assert _score_color(65) == "#9a6b12"
+    assert _score_color(45) == "#ba1a1a"
+    assert _score_color(20) == "#ba1a1a"
 
 
 def test_grade_and_level_colors():
-    assert _grade_color("A") == "#22c55e"
-    assert _grade_color("Z") == "#6b7280"
-    assert _level_color("High") == "#ef4444"
-    assert _level_color("Unknown") == "#6b7280"
+    assert _grade_color("A") == "#2e7d52"
+    assert _grade_color("Z") == "#747878"
+    assert _level_color("High") == "#ba1a1a"
+    assert _level_color("Unknown") == "#747878"
 
 
 def test_render_html(report):
@@ -21,4 +21,4 @@ def test_render_html(report):
     assert "https://example.com" in html
     assert "Improve LCP" in html
     assert "Add alt text to images" in html
-    assert "Mobile Score" in html
+    assert "Mobile score" in html
