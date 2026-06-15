@@ -1,22 +1,16 @@
-# Secrets
-.env
+# OS
+.DS_Store
+Thumbs.db
 
-# Python
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local project notes
+CLAUDE.md
+
+# Stray build artifacts (real per-package ignores live in api/.gitignore and web/.gitignore)
 __pycache__/
-*.pyc
 *.egg-info/
-build/
-dist/
-
-# Virtualenvs
-.venv/
-venv/
-
-# Tooling caches
-.pytest_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-
-# Output
-*.pdf

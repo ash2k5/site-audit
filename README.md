@@ -1,62 +1,59 @@
-# AI Site Audit Generator
+# Site Audit
 
-Generate a PDF audit of any website (SEO, performance, technical, content) for
-sales outreach. It scrapes the page, pulls real Google PageSpeed metrics, has a
-Groq LLM turn the data into graded findings and recommendations, and renders a
-PDF. Runs as a CLI or a small web service.
+Generate a structured website audit from a URL: SEO, performance (PageSpeed / Core Web
+Vitals), technical health, and content, scored and analyzed by an LLM into a prioritized
+action plan and a polished PDF.
 
-Pipeline: validate URL → scrape (requests + BeautifulSoup) and PageSpeed
-(Google) → Groq structured analysis → Jinja2 + Playwright PDF.
+- **API:** https://site-audit-vil4.onrender.com — [OpenAPI schema](https://site-audit-vil4.onrender.com/openapi.json)
+- **Web app:** in development (`web/`, this milestone)
 
-## Requirements
+## What it does
 
-- Python 3.10+
-- A free [Groq API key](https://console.groq.com)
-- Optional: a [Google PageSpeed key](https://console.cloud.google.com/apis/library/pagespeedonline.googleapis.com) (raises the request quota)
+Give it a URL and it scrapes the page (SSRF-guarded), pulls Google PageSpeed metrics,
+and sends the signals to a Groq-hosted LLM that returns category scores (SEO,
+performance, technical, content), an executive summary, quick wins, and ranked
+recommendations. The result is available as typed JSON or as a print-ready PDF.
 
-## Setup
+## Architecture
 
-```bash
-uv venv && uv pip install -e ".[dev]"
-uv run playwright install chromium
-cp .env.example .env            # then add your GROQ_API_KEY
+```
+site-audit/
+├── api/   FastAPI JSON API + Playwright PDF rendering   ->  Render (Docker)
+└── web/   Next.js App Router frontend on @ash2k5/cinematic-ds  ->  Vercel  (in development)
 ```
 
-Plain pip works too: `pip install -e ".[dev]"` inside an activated venv.
+The two halves deploy independently. The frontend's API client is **typed from the
+backend's OpenAPI schema**, so the contract between them is checked at compile time.
 
-## CLI
+| | Stack |
+|---|---|
+| api | Python 3.10+, FastAPI, BeautifulSoup, Groq, Playwright/Jinja2 PDF; pytest + ruff + mypy; Docker on Render |
+| web | Next.js (App Router), React, TypeScript, Tailwind v4, the [`@ash2k5/cinematic-ds`](https://github.com/ash2k5/design-system) design system; Vercel |
+
+## Run locally
+
+**API** (http://localhost:8000, `/docs` for Swagger):
 
 ```bash
-site-audit example.com
-site-audit https://acme.com -o acme.pdf --no-screenshot
+cd api
+pip install -e ".[dev]"
+playwright install chromium
+cp .env.example .env   # add your GROQ_API_KEY
+uvicorn site_audit.web:app --reload
 ```
 
-`--allow-private` permits localhost. The PDF path prints to stdout, progress to stderr.
-
-## Web service
+The CLI renders a PDF directly:
 
 ```bash
-uv run uvicorn site_audit.web:app --reload
+cd api && site-audit https://example.com
 ```
 
-`GET /` form · `POST /audit` returns the PDF · `GET /api/audit?url=` returns JSON ·
-`GET /healthz`. Non-public hosts are refused (SSRF guard), and requests are
-rate-limited per IP.
-
-## Docker
+## Tests
 
 ```bash
-docker build -t site-audit .
-docker run -p 8000:8000 -e GROQ_API_KEY=your_key site-audit
-```
-
-## Test
-
-```bash
-uv run pytest          # offline; all network is mocked
-uv run ruff check .
+cd api && pytest        # scraper, analyzer, limits, PDF, and API endpoint tests
 ```
 
 ## License
 
-[MIT](LICENSE)
+MIT (`LICENSE`).
