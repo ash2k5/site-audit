@@ -13,28 +13,33 @@ log = logging.getLogger(__name__)
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 
+# Cinematic Editorial semantic colors (light theme, from the design system tokens).
+_SUCCESS = "#2e7d52"
+_WARNING = "#9a6b12"
+_ERROR = "#ba1a1a"
+_NEUTRAL = "#747878"
+
+
 def _score_color(score: int) -> str:
     if score >= 80:
-        return "#22c55e"
+        return _SUCCESS
     if score >= 60:
-        return "#f59e0b"
-    if score >= 40:
-        return "#f97316"
-    return "#ef4444"
+        return _WARNING
+    return _ERROR
 
 
 def _grade_color(grade: str) -> str:
     return {
-        "A": "#22c55e",
-        "B": "#84cc16",
-        "C": "#f59e0b",
-        "D": "#f97316",
-        "F": "#ef4444",
-    }.get(grade, "#6b7280")
+        "A": _SUCCESS,
+        "B": _SUCCESS,
+        "C": _WARNING,
+        "D": _WARNING,
+        "F": _ERROR,
+    }.get(grade, _NEUTRAL)
 
 
 def _level_color(level: str) -> str:
-    return {"High": "#ef4444", "Medium": "#f59e0b", "Low": "#22c55e"}.get(level, "#6b7280")
+    return {"High": _ERROR, "Medium": _WARNING, "Low": _SUCCESS}.get(level, _NEUTRAL)
 
 
 def render_html(report: AuditReport, screenshot_b64: str = "") -> str:
@@ -44,9 +49,21 @@ def render_html(report: AuditReport, screenshot_b64: str = "") -> str:
     env.filters["level_color"] = _level_color
     template = env.get_template("report.html")
 
+    categories = [
+        ("SEO", report.seo),
+        ("Performance", report.performance),
+        ("Technical", report.technical),
+        ("Content", report.content),
+    ]
     perf = report.raw_data.performance if report.raw_data else None
     mv = perf.mobile_vitals if perf else None
-    return template.render(report=report, perf=perf, mv=mv, screenshot_b64=screenshot_b64)
+    return template.render(
+        report=report,
+        categories=categories,
+        perf=perf,
+        mv=mv,
+        screenshot_b64=screenshot_b64,
+    )
 
 
 def generate_pdf(report: AuditReport, output_path: str, skip_screenshot: bool = False) -> None:
