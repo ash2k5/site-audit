@@ -1,9 +1,9 @@
-# AI Site Audit Generator
+# Site Audit API
 
-Generate a PDF audit of any website (SEO, performance, technical, content) for
-sales outreach. It scrapes the page, pulls real Google PageSpeed metrics, has a
-Groq LLM turn the data into graded findings and recommendations, and renders a
-PDF. Runs as a CLI or a small web service.
+The backend half of the [Site Audit](../README.md) monorepo: a typed JSON API (plus a
+CLI) that audits any website for SEO, performance, technical health, and content. It
+scrapes the page, pulls real Google PageSpeed metrics, has a Groq LLM turn the data
+into graded findings and recommendations, and can render the result as a PDF.
 
 Pipeline: validate URL → scrape (requests + BeautifulSoup) and PageSpeed
 (Google) → Groq structured analysis → Jinja2 + Playwright PDF.
@@ -33,15 +33,19 @@ site-audit https://acme.com -o acme.pdf --no-screenshot
 
 `--allow-private` permits localhost. The PDF path prints to stdout, progress to stderr.
 
-## Web service
+## API
 
 ```bash
 uv run uvicorn site_audit.web:app --reload
 ```
 
-`GET /` form · `POST /audit` returns the PDF · `GET /api/audit?url=` returns JSON ·
-`GET /healthz`. Non-public hosts are refused (SSRF guard), and requests are
-rate-limited per IP.
+- `GET /api/audit?url=` returns the audit as typed JSON (the response model).
+- `POST /audit` (form field `url`) returns the audit as a PDF.
+- `GET /healthz` and `GET /` (service descriptor); interactive docs at `/docs`.
+
+The response schema is published at `/openapi.json`; the frontend generates its
+typed client from it. Non-public hosts are refused (SSRF guard), and requests are
+rate-limited per IP with a daily ceiling and an optional `AUDIT_API_KEY`.
 
 ## Docker
 
@@ -52,9 +56,9 @@ docker run -p 8000:8000 -e GROQ_API_KEY=your_key site-audit
 
 ## Deploy (Render)
 
-`render.yaml` defines a free Docker web service. Create a Render Blueprint from
-the repo, set `GROQ_API_KEY` in the dashboard (never commit it), and Render
-builds and health-checks `/healthz`.
+`render.yaml` at the repo root defines a free Docker web service with `rootDir: api`.
+Create a Render Blueprint from the repo, set `GROQ_API_KEY` in the dashboard (never
+commit it), and Render builds from `api/` and health-checks `/healthz`.
 
 ## Test
 
@@ -65,4 +69,4 @@ uv run ruff check .
 
 ## License
 
-[MIT](LICENSE)
+[MIT](../LICENSE)
