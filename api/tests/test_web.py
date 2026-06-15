@@ -33,7 +33,9 @@ def test_healthz():
 def test_index():
     r = client.get("/")
     assert r.status_code == 200
-    assert "Generate audit" in r.text
+    body = r.json()
+    assert body["service"] == "AI Site Audit Generator"
+    assert body["endpoints"]["audit_json"] == "/api/audit?url="
 
 
 def test_api_audit_success(monkeypatch, report):

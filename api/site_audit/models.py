@@ -1,12 +1,11 @@
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class SEOData:
+class SEOData(BaseModel):
     title: str = ""
     meta_description: str = ""
-    h1_tags: list[str] = field(default_factory=list)
-    h2_tags: list[str] = field(default_factory=list)
+    h1_tags: list[str] = Field(default_factory=list)
+    h2_tags: list[str] = Field(default_factory=list)
     canonical_url: str = ""
     og_title: str = ""
     og_description: str = ""
@@ -20,8 +19,7 @@ class SEOData:
     has_contact_info: bool = False
 
 
-@dataclass
-class CoreWebVitals:
+class CoreWebVitals(BaseModel):
     lcp: float | None = None
     cls: float | None = None
     fid: float | None = None
@@ -30,17 +28,15 @@ class CoreWebVitals:
     speed_index: float | None = None
 
 
-@dataclass
-class PerformanceData:
+class PerformanceData(BaseModel):
     mobile_score: int | None = None
     desktop_score: int | None = None
-    mobile_vitals: CoreWebVitals = field(default_factory=CoreWebVitals)
-    opportunities: list[str] = field(default_factory=list)
-    diagnostics: list[str] = field(default_factory=list)
+    mobile_vitals: CoreWebVitals = Field(default_factory=CoreWebVitals)
+    opportunities: list[str] = Field(default_factory=list)
+    diagnostics: list[str] = Field(default_factory=list)
 
 
-@dataclass
-class TechnicalData:
+class TechnicalData(BaseModel):
     status_code: int = 200
     is_https: bool = False
     final_url: str = ""
@@ -50,32 +46,28 @@ class TechnicalData:
     has_sitemap: bool = False
 
 
-@dataclass
-class AuditInput:
+class AuditInput(BaseModel):
     url: str
     seo: SEOData
     performance: PerformanceData
     technical: TechnicalData
 
 
-@dataclass
-class CategoryScore:
+class CategoryScore(BaseModel):
     score: int
     grade: str
     summary: str
-    findings: list[str] = field(default_factory=list)
+    findings: list[str] = Field(default_factory=list)
 
 
-@dataclass
-class Recommendation:
+class Recommendation(BaseModel):
     title: str
     impact: str
     effort: str
     detail: str
 
 
-@dataclass
-class AuditReport:
+class AuditReport(BaseModel):
     url: str
     company_name: str
     overall_score: int
