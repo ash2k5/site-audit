@@ -5,7 +5,7 @@ Vitals), technical health, and content, scored and analyzed by an LLM into a pri
 action plan and a polished PDF.
 
 - **API:** https://site-audit-vil4.onrender.com — [OpenAPI schema](https://site-audit-vil4.onrender.com/openapi.json)
-- **Web app:** in development (`web/`, this milestone)
+- **Web app:** `web/` — Next.js frontend on `@ash2k5/cinematic-ds`, deploys to Vercel
 
 ## What it does
 
@@ -19,11 +19,13 @@ recommendations. The result is available as typed JSON or as a print-ready PDF.
 ```
 site-audit/
 ├── api/   FastAPI JSON API + Playwright PDF rendering   ->  Render (Docker)
-└── web/   Next.js App Router frontend on @ash2k5/cinematic-ds  ->  Vercel  (in development)
+└── web/   Next.js App Router frontend on @ash2k5/cinematic-ds  ->  Vercel
 ```
 
 The two halves deploy independently. The frontend's API client is **typed from the
 backend's OpenAPI schema**, so the contract between them is checked at compile time.
+The audit runs server-side from a Next route handler / server action, so the API key
+stays off the client and there is no CORS round trip.
 
 | | Stack |
 |---|---|
@@ -48,10 +50,22 @@ The CLI renders a PDF directly:
 cd api && site-audit https://example.com
 ```
 
+**Web** (http://localhost:3000):
+
+```bash
+cd web
+npm install
+cp .env.example .env    # API_BASE_URL defaults to the deployed API
+npm run dev
+```
+
+`npm run gen:api` regenerates the typed API client from the live OpenAPI schema.
+
 ## Tests
 
 ```bash
 cd api && pytest        # scraper, analyzer, limits, PDF, and API endpoint tests
+cd web && npm test      # api client, server action, format helpers, components
 ```
 
 ## License
