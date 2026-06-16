@@ -1,8 +1,5 @@
 import AuditClient from "./components/AuditClient";
 
-// Audits run server-side via the form action and can take close to a minute.
-export const maxDuration = 60;
-
 export default function Home() {
   return (
     <div className="ds-container flex flex-col gap-12 py-16 md:py-20">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@ash2k5/cinematic-ds";
-import { displayUrl } from "../lib/format";
+import { fetchAuditPdf } from "../lib/api";
 
 export default function DownloadPdfButton({ url }: { url: string }) {
   const [loading, setLoading] = useState(false);
@@ -13,17 +13,11 @@ export default function DownloadPdfButton({ url }: { url: string }) {
     setLoading(true);
     setFailed(false);
     try {
-      const res = await fetch("/api/pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      if (!res.ok) throw new Error(`PDF request failed (${res.status})`);
-      const blob = await res.blob();
+      const { blob, filename } = await fetchAuditPdf(url);
       const href = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = href;
-      anchor.download = `${displayUrl(url).replace(/[^a-z0-9.-]+/gi, "_")}-audit.pdf`;
+      anchor.download = filename;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

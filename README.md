@@ -24,8 +24,8 @@ site-audit/
 
 The two halves deploy independently. The frontend's API client is **typed from the
 backend's OpenAPI schema**, so the contract between them is checked at compile time.
-The audit runs server-side from a Next route handler / server action, so the API key
-stays off the client and there is no CORS round trip.
+The browser calls the API directly (CORS) rather than through the frontend's own
+backend, because an audit can run longer than a serverless function is allowed to live.
 
 | | Stack |
 |---|---|

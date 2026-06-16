@@ -1,4 +1,5 @@
 import type { components } from "./schema";
+import { normalizeUrl } from "./format";
 
 export type AuditReport = components["schemas"]["AuditReport"];
 export type CategoryScore = components["schemas"]["CategoryScore"];
@@ -9,12 +10,13 @@ export type TechnicalData = components["schemas"]["TechnicalData"];
 export type AuditInput = components["schemas"]["AuditInput"];
 
 export const API_BASE_URL = (
-  process.env.API_BASE_URL ?? "https://site-audit-vil4.onrender.com"
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://site-audit-vil4.onrender.com"
 ).replace(/\/+$/, "");
 
-// Audits scrape, hit PageSpeed, and call an LLM, so a single request can run
-// close to a minute. The platform function timeout is the real ceiling.
-const AUDIT_TIMEOUT_MS = 120_000;
+// A cold backend plus the scrape, PageSpeed, and LLM steps can run well past a
+// minute. The browser calls the API directly, so this is the only ceiling (no
+// serverless function timeout in the way).
+const AUDIT_TIMEOUT_MS = 150_000;
 
 export class ApiError extends Error {
   constructor(
@@ -24,11 +26,6 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
-}
-
-export function authHeaders(): Record<string, string> {
-  const key = process.env.AUDIT_API_KEY;
-  return key ? { "x-api-key": key } : {};
 }
 
 async function detailFrom(res: Response, fallback: string): Promise<string> {
@@ -45,7 +42,6 @@ export async function runAuditReport(url: string): Promise<AuditReport> {
   const res = await fetch(
     `${API_BASE_URL}/api/audit?url=${encodeURIComponent(url)}`,
     {
-      headers: authHeaders(),
       cache: "no-store",
       signal: AbortSignal.timeout(AUDIT_TIMEOUT_MS),
     },
@@ -54,4 +50,43 @@ export async function runAuditReport(url: string): Promise<AuditReport> {
     throw new ApiError(res.status, await detailFrom(res, `Audit failed (${res.status})`));
   }
   return res.json() as Promise<AuditReport>;
+}
+
+export type AuditResult =
+  | { ok: true; report: AuditReport }
+  | { ok: false; error: string };
+
+export async function runAudit(rawUrl: string): Promise<AuditResult> {
+  const url = normalizeUrl(rawUrl);
+  if (!url) return { ok: false, error: "Enter a URL to audit." };
+  try {
+    return { ok: true, report: await runAuditReport(url) };
+  } catch (err) {
+    if (err instanceof ApiError) return { ok: false, error: err.message };
+    if (err instanceof Error && err.name === "TimeoutError") {
+      return { ok: false, error: "The audit took too long. Try again in a moment." };
+    }
+    return { ok: false, error: "Could not reach the audit service. Try again." };
+  }
+}
+
+export async function fetchAuditPdf(
+  rawUrl: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const url = normalizeUrl(rawUrl);
+  const res = await fetch(`${API_BASE_URL}/audit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ url }).toString(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(AUDIT_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, `PDF request failed (${res.status})`);
+  }
+  const filename =
+    res.headers
+      .get("content-disposition")
+      ?.match(/filename="?([^";]+)"?/)?.[1] ?? "site-audit.pdf";
+  return { blob: await res.blob(), filename };
 }
