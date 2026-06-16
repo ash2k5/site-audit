@@ -1,0 +1,10 @@
+/* Site Audit identity over the Cinematic Editorial base: signal violet in place
+   of the editorial near-black, matching the PDF report's accent. */
+:root {
+  --primary: #6d3bd1;
+  --on-primary: #ffffff;
+}
+[data-theme="dark"] {
+  --primary: #b794ff;
+  --on-primary: #241047;
+}
