@@ -2,8 +2,7 @@
 
 import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input } from "@ash2k5/cinematic-ds";
-import { runAudit } from "../actions";
-import type { AuditReport } from "../lib/api";
+import { runAudit, type AuditReport } from "../lib/api";
 import AuditLoading from "./AuditLoading";
 import AuditReportView from "./AuditReportView";
 
