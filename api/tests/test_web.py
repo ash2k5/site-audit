@@ -131,3 +131,26 @@ def test_concurrency_cap_returns_429(monkeypatch, report):
 def test_body_too_large():
     r = client.post("/audit", data={"url": "x" * 20000})
     assert r.status_code == 413
+
+
+def test_cors_allows_cross_origin(monkeypatch, report):
+    monkeypatch.setattr(web, "build_report", lambda url, **k: report)
+    r = client.get(
+        "/api/audit",
+        params={"url": "https://example.com"},
+        headers={"origin": "https://site-audit-web.example"},
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "*"
+
+
+def test_cors_preflight():
+    r = client.options(
+        "/api/audit",
+        headers={
+            "origin": "https://site-audit-web.example",
+            "access-control-request-method": "GET",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "*"

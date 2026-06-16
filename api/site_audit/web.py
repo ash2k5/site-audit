@@ -5,6 +5,7 @@ import threading
 from contextlib import contextmanager
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.background import BackgroundTask
 
@@ -20,6 +21,20 @@ app = FastAPI(
     title="AI Site Audit Generator",
     version=__version__,
     description="Scrape a URL, measure it, and return an LLM-scored audit as JSON or PDF.",
+)
+
+# The browser calls this API directly (the audit runs longer than a serverless
+# function may live), so it is a public read API guarded by rate limits, not CORS.
+_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"]
+    if _ALLOWED_ORIGINS.strip() == "*"
+    else [o.strip() for o in _ALLOWED_ORIGINS.split(",") if o.strip()],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 _API_KEY = os.getenv("AUDIT_API_KEY")
