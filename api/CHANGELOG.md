@@ -13,7 +13,11 @@ turned the API into a typed JSON service:
   semantic colors from the shared tokens.
 - Added the `web/` Next.js frontend on the design system: enter a URL and the scored
   report (categories, Core Web Vitals, recommendations) renders in the browser, with a
-  one-click PDF download; the audit runs server-side through the typed API client.
+  one-click PDF download.
+- Enabled CORS (configurable via `ALLOWED_ORIGINS`, default open) so the browser can
+  call the audit directly. An audit can outlast a serverless function, so the frontend
+  talks to this API from the client rather than proxying through its own backend; the
+  per-IP rate limit now sees real client IPs.
 
 ## 2026-06-12
 
