@@ -4,8 +4,8 @@ Generate a structured website audit from a URL: SEO, performance (PageSpeed / Co
 Vitals), technical health, and content, scored and analyzed by an LLM into a prioritized
 action plan and a polished PDF.
 
+- **Web app:** https://site-audit-web-ecru.vercel.app — Next.js frontend on `@ash2k5/cinematic-ds`
 - **API:** https://site-audit-vil4.onrender.com — [OpenAPI schema](https://site-audit-vil4.onrender.com/openapi.json)
-- **Web app:** `web/` — Next.js frontend on `@ash2k5/cinematic-ds`, deploys to Vercel
 
 ## What it does
 
