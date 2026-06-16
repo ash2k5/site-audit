@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-06-12
+## Unreleased
 
 Reworked the project into a monorepo (`api/` here + a `web/` Next.js frontend) and
 turned the API into a typed JSON service:
@@ -11,6 +11,11 @@ turned the API into a typed JSON service:
 - The PDF report was redesigned on the Cinematic Editorial design system: light print
   theme, Bodoni display headings, Inter body, tabular figures, sharp edges, and
   semantic colors from the shared tokens.
+- Added the `web/` Next.js frontend on the design system: enter a URL and the scored
+  report (categories, Core Web Vitals, recommendations) renders in the browser, with a
+  one-click PDF download; the audit runs server-side through the typed API client.
+
+## 2026-06-12
 
 Hardened the public web service ahead of deploy:
 
