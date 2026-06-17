@@ -1,41 +1,26 @@
-# Changelog
+# changelog
 
-## Unreleased
+## unreleased
 
-Reworked the project into a monorepo (`api/` here + a `web/` Next.js frontend) and
-turned the API into a typed JSON service:
-
-- The audit models are now Pydantic, so `/api/audit` returns a fully typed response
-  and the OpenAPI schema describes every field (the frontend generates its client
-  from it). The inline HTML form was removed; `/` returns a small service descriptor.
-- The PDF report was redesigned on the Cinematic Editorial design system: light print
-  theme, Bodoni display headings, Inter body, tabular figures, sharp edges, and
-  semantic colors from the shared tokens.
-- Added the `web/` Next.js frontend on the design system: enter a URL and the scored
-  report (categories, Core Web Vitals, recommendations) renders in the browser, with a
-  one-click PDF download.
-- Enabled CORS (configurable via `ALLOWED_ORIGINS`, default open) so the browser can
-  call the audit directly. An audit can outlast a serverless function, so the frontend
-  talks to this API from the client rather than proxying through its own backend; the
-  per-IP rate limit now sees real client IPs.
+- split into a monorepo: this python api plus a next.js frontend in `web/`.
+- the api returns typed json now (pydantic models + openapi schema); the old inline
+  html form is gone.
+- redesigned the pdf report on the cinematic-ds design system.
+- added the web frontend: enter a url and the scored report renders in the browser,
+  with a one-click pdf download.
+- enabled cors (via `ALLOWED_ORIGINS`) so the browser can call the audit directly.
 
 ## 2026-06-12
 
-Hardened the public web service ahead of deploy:
-
-- SSRF guard now re-validates every fetch and redirect hop and pins each
-  connection to its resolved IP, closing the redirect-bypass and DNS-rebinding
-  gaps. The hosted PDF no longer takes a live page screenshot.
-- Added per-IP rate limiting, a concurrent-audit cap, a daily audit ceiling,
-  request-size and URL-length limits.
-- Scraped content is truncated and framed as untrusted in the LLM prompt; the
-  Groq client has an explicit timeout; a malformed model response fails closed.
-- Client-facing errors are generic; full detail stays in server logs.
-- CI runs mypy and pip-audit. Default branch is now `main`.
+- ssrf guard re-validates every fetch and redirect hop and pins each connection to its
+  resolved ip; the hosted pdf no longer takes a live screenshot.
+- added per-ip rate limiting, a concurrent-audit cap, a daily ceiling, and request-size
+  and url-length limits.
+- scraped content is truncated and framed as untrusted in the llm prompt; the groq
+  client has a timeout and a malformed response fails closed.
+- client-facing errors are generic; full detail stays in the logs.
 
 ## 2026-06-05
 
-Packaged the original audit script into the `site_audit` package with a CLI and a
-FastAPI web service, plus a pytest suite and Docker/Render deploy. The hosted
-service refuses non-public hosts (SSRF guard), and previously committed API keys
-were removed from the tree and git history.
+- packaged the audit script into the `site_audit` package with a cli, a fastapi service,
+  tests, and docker config.
