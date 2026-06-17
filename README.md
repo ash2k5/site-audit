@@ -1,16 +1,16 @@
-# site audit
+# Site Audit
 
-give it a url and it scrapes the page, pulls google pagespeed metrics, and has an llm
-score seo, performance, technical health, and content into a report. read it in the
-browser or download a pdf.
+Give it a URL and it scrapes the page, pulls Google PageSpeed metrics, and has an LLM score
+SEO, performance, technical health, and content into a report. Read it in the browser or
+download a PDF.
 
 https://site-audit-web-ecru.vercel.app
 
-## run locally
+## Run locally
 
-a python api (`api/`) and a next.js frontend (`web/`).
+A Python API (`api/`) and a Next.js frontend (`web/`).
 
-api, on http://localhost:8000:
+API, on http://localhost:8000:
 
 ```bash
 cd api
@@ -20,13 +20,13 @@ cp .env.example .env   # add your GROQ_API_KEY (free from console.groq.com)
 uvicorn site_audit.web:app --reload
 ```
 
-the cli renders a pdf straight to disk:
+The CLI renders a PDF straight to disk:
 
 ```bash
 cd api && site-audit https://example.com
 ```
 
-web, on http://localhost:3000 (point `NEXT_PUBLIC_API_BASE_URL` at your local api):
+Web, on http://localhost:3000 (point `NEXT_PUBLIC_API_BASE_URL` at your local API):
 
 ```bash
 cd web
@@ -35,7 +35,7 @@ cp .env.example .env
 npm run dev
 ```
 
-## tests
+## Tests
 
 ```bash
 cd api && pytest
