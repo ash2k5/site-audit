@@ -1,10 +1,10 @@
-# site audit api
+# Site Audit API
 
-the backend for [site audit](../README.md): a json api and a cli that audit a website
-for seo, performance, technical health, and content. it scrapes the page, pulls google
-pagespeed metrics, has a groq llm grade the findings, and can render the result as a pdf.
+The backend for [Site Audit](../README.md): a JSON API and a CLI that audit a website for
+SEO, performance, technical health, and content. It scrapes the page, pulls Google PageSpeed
+metrics, has a Groq LLM grade the findings, and can render the result as a PDF.
 
-## setup
+## Setup
 
 ```bash
 pip install -e ".[dev]"
@@ -12,32 +12,32 @@ playwright install chromium
 cp .env.example .env   # add your GROQ_API_KEY
 ```
 
-needs python 3.10+ and a free [groq key](https://console.groq.com). a
-[pagespeed key](https://console.cloud.google.com/apis/library/pagespeedonline.googleapis.com)
+Needs Python 3.10+ and a free [Groq key](https://console.groq.com). A
+[PageSpeed key](https://console.cloud.google.com/apis/library/pagespeedonline.googleapis.com)
 is optional and raises the request quota.
 
-## cli
+## CLI
 
 ```bash
 site-audit example.com
 site-audit https://acme.com -o acme.pdf --no-screenshot
 ```
 
-`--allow-private` permits localhost. the pdf path prints to stdout, progress to stderr.
+`--allow-private` permits localhost. The PDF path prints to stdout, progress to stderr.
 
-## api
+## API
 
 ```bash
 uvicorn site_audit.web:app --reload
 ```
 
-- `GET /api/audit?url=` returns the audit as typed json.
-- `POST /audit` (form field `url`) returns the audit as a pdf.
+- `GET /api/audit?url=` returns the audit as typed JSON.
+- `POST /audit` (form field `url`) returns the audit as a PDF.
 - `GET /healthz` and `GET /`; interactive docs at `/docs`, schema at `/openapi.json`.
 
-non-public hosts are refused (ssrf guard) and requests are rate-limited per ip.
+Non-public hosts are refused (SSRF guard) and requests are rate-limited per IP.
 
-## tests
+## Tests
 
 ```bash
 pytest
