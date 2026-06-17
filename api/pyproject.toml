@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "site-audit"
 version = "1.0.0"
-description = "Generate a structured PDF site audit from a URL for sales outreach."
+description = "generate a website audit from a url"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

@@ -1,73 +1,43 @@
-# Site Audit
+# site audit
 
-Generate a structured website audit from a URL: SEO, performance (PageSpeed / Core Web
-Vitals), technical health, and content, scored and analyzed by an LLM into a prioritized
-action plan and a polished PDF.
+give it a url and it scrapes the page, pulls google pagespeed metrics, and has an llm
+score seo, performance, technical health, and content into a report. read it in the
+browser or download a pdf.
 
-- **Web app:** https://site-audit-web-ecru.vercel.app — Next.js frontend on `@ash2k5/cinematic-ds`
-- **API:** https://site-audit-vil4.onrender.com — [OpenAPI schema](https://site-audit-vil4.onrender.com/openapi.json)
+https://site-audit-web-ecru.vercel.app
 
-## What it does
+## run locally
 
-Give it a URL and it scrapes the page (SSRF-guarded), pulls Google PageSpeed metrics,
-and sends the signals to a Groq-hosted LLM that returns category scores (SEO,
-performance, technical, content), an executive summary, quick wins, and ranked
-recommendations. The result is available as typed JSON or as a print-ready PDF.
+a python api (`api/`) and a next.js frontend (`web/`).
 
-## Architecture
-
-```
-site-audit/
-├── api/   FastAPI JSON API + Playwright PDF rendering   ->  Render (Docker)
-└── web/   Next.js App Router frontend on @ash2k5/cinematic-ds  ->  Vercel
-```
-
-The two halves deploy independently. The frontend's API client is **typed from the
-backend's OpenAPI schema**, so the contract between them is checked at compile time.
-The browser calls the API directly (CORS) rather than through the frontend's own
-backend, because an audit can run longer than a serverless function is allowed to live.
-
-| | Stack |
-|---|---|
-| api | Python 3.10+, FastAPI, BeautifulSoup, Groq, Playwright/Jinja2 PDF; pytest + ruff + mypy; Docker on Render |
-| web | Next.js (App Router), React, TypeScript, Tailwind v4, the [`@ash2k5/cinematic-ds`](https://github.com/ash2k5/design-system) design system; Vercel |
-
-## Run locally
-
-**API** (http://localhost:8000, `/docs` for Swagger):
+api, on http://localhost:8000:
 
 ```bash
 cd api
 pip install -e ".[dev]"
 playwright install chromium
-cp .env.example .env   # add your GROQ_API_KEY
+cp .env.example .env   # add your GROQ_API_KEY (free from console.groq.com)
 uvicorn site_audit.web:app --reload
 ```
 
-The CLI renders a PDF directly:
+the cli renders a pdf straight to disk:
 
 ```bash
 cd api && site-audit https://example.com
 ```
 
-**Web** (http://localhost:3000):
+web, on http://localhost:3000 (point `NEXT_PUBLIC_API_BASE_URL` at your local api):
 
 ```bash
 cd web
 npm install
-cp .env.example .env    # API_BASE_URL defaults to the deployed API
+cp .env.example .env
 npm run dev
 ```
 
-`npm run gen:api` regenerates the typed API client from the live OpenAPI schema.
-
-## Tests
+## tests
 
 ```bash
-cd api && pytest        # scraper, analyzer, limits, PDF, and API endpoint tests
-cd web && npm test      # api client, server action, format helpers, components
+cd api && pytest
+cd web && npm test
 ```
-
-## License
-
-MIT (`LICENSE`).
