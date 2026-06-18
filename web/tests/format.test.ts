@@ -8,7 +8,7 @@ import {
   ratingTone,
   scoreTone,
   vitalRating,
-} from "../app/lib/format";
+} from "../src/lib/format";
 
 describe("normalizeUrl", () => {
   test("prepends https:// to a bare host", () => {

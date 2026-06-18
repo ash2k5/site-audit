@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "gen:api": "npx -y openapi-typescript@7 https://site-audit-vil4.onrender.com/openapi.json -o app/lib/schema.d.ts"
+    "gen:api": "npx -y openapi-typescript@7 https://site-audit-vil4.onrender.com/openapi.json -o src/lib/schema.d.ts"
   },
   "dependencies": {
-    "@ash2k5/cinematic-ds": "^0.2.0",
+    "@ash2k5/ui": "^1.0.1",
     "lucide-react": "^0.562.0",
     "next": "16.2.7",
     "react": "19.2.3",

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { fetchAuditPdf, runAudit } from "../app/lib/api";
+import { fetchAuditPdf, runAudit } from "../src/lib/api";
 
 const fetchMock = vi.fn();
 

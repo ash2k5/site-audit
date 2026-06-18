@@ -5,10 +5,11 @@
 - Split into a monorepo: this Python API plus a Next.js frontend in `web/`.
 - The API returns typed JSON now (Pydantic models + OpenAPI schema); the old inline HTML
   form is gone.
-- Redesigned the PDF report on the cinematic-ds design system.
+- Redesigned the PDF report on the `@ash2k5/ui` design system.
 - Added the web frontend: enter a URL and the scored report renders in the browser, with a
   one-click PDF download.
 - Enabled CORS (via `ALLOWED_ORIGINS`) so the browser can call the audit directly.
+- Renamed the design system dependency from `@ash2k5/cinematic-ds` to `@ash2k5/ui`.
 
 ## 2026-06-12
 

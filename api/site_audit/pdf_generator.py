@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 
-# Cinematic Editorial semantic colors (light theme, from the design system tokens).
+# Semantic colors (light theme, from the design system tokens).
 _SUCCESS = "#2e7d52"
 _WARNING = "#9a6b12"
 _ERROR = "#ba1a1a"

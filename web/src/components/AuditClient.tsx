@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState, useTransition } from "react";
-import { Button, Input } from "@ash2k5/cinematic-ds";
+import { Button, Input } from "@ash2k5/ui";
 import { runAudit, type AuditReport } from "../lib/api";
 import AuditLoading from "./AuditLoading";
 import AuditReportView from "./AuditReportView";

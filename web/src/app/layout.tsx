@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { Metadata } from "next";
 import { Bodoni_Moda, Inter } from "next/font/google";
-import { AuroraBackground } from "@ash2k5/cinematic-ds";
-import SiteHeader from "./components/SiteHeader";
+import { AuroraBackground } from "@ash2k5/ui";
+import SiteHeader from "../components/SiteHeader";
 import "./globals.css";
 
 const bodoni = Bodoni_Moda({

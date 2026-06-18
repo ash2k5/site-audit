@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
-import CoreWebVitals from "../app/components/CoreWebVitals";
-import type { PerformanceData } from "../app/lib/api";
+import CoreWebVitals from "../src/components/CoreWebVitals";
+import type { PerformanceData } from "../src/lib/api";
 
 const performance: PerformanceData = {
   mobile_score: 45,
