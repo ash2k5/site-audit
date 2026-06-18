@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
-import AuditReportView from "../app/components/AuditReportView";
-import type { AuditReport } from "../app/lib/api";
+import AuditReportView from "../src/components/AuditReportView";
+import type { AuditReport } from "../src/lib/api";
 
 const report: AuditReport = {
   url: "https://acme.example",

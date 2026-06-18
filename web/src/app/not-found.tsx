@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@ash2k5/cinematic-ds";
+import { Button } from "@ash2k5/ui";
 
 export default function NotFound() {
   return (

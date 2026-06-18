@@ -1,4 +1,4 @@
-import { Badge } from "@ash2k5/cinematic-ds";
+import { Badge } from "@ash2k5/ui";
 import type { Recommendation } from "../lib/api";
 import { levelTone } from "../lib/format";
 

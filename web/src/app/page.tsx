@@ -1,4 +1,4 @@
-import AuditClient from "./components/AuditClient";
+import AuditClient from "../components/AuditClient";
 
 export default function Home() {
   return (

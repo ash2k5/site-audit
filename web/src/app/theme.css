@@ -1,0 +1,9 @@
+/* Site Audit identity: signal violet, matching the PDF report's accent. */
+:root {
+  --primary: #6d3bd1;
+  --on-primary: #ffffff;
+}
+[data-theme="dark"] {
+  --primary: #b794ff;
+  --on-primary: #241047;
+}

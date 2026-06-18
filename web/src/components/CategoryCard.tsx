@@ -1,4 +1,4 @@
-import { Badge } from "@ash2k5/cinematic-ds";
+import { Badge } from "@ash2k5/ui";
 import type { CategoryScore } from "../lib/api";
 import { gradeTone, scoreTone, TONE_TEXT } from "../lib/format";
 
