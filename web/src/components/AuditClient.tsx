@@ -1,8 +1,8 @@
 "use client";
 
-import { type FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useState, useTransition } from "react";
 import { Button, Input } from "@ash2k5/ui";
-import { runAudit, type AuditReport } from "../lib/api";
+import { runAudit, wakeBackend, type AuditReport } from "../lib/api";
 import AuditLoading from "./AuditLoading";
 import AuditReportView from "./AuditReportView";
 
@@ -11,20 +11,39 @@ export default function AuditClient() {
   const [submitted, setSubmitted] = useState("");
   const [report, setReport] = useState<AuditReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [warm, setWarm] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    const value = url.trim();
-    if (!value || pending) return;
+  useEffect(() => {
+    let active = true;
+    wakeBackend().then((ok) => {
+      if (active && ok) setWarm(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function start(value: string) {
     setSubmitted(value);
     setError(null);
     setReport(null);
     startTransition(async () => {
       const result = await runAudit(value);
-      if (result.ok) setReport(result.report);
-      else setError(result.error);
+      if (result.ok) {
+        setReport(result.report);
+        setWarm(true);
+      } else {
+        setError(result.error);
+      }
     });
+  }
+
+  function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    const value = url.trim();
+    if (!value || pending) return;
+    start(value);
   }
 
   return (
@@ -53,13 +72,16 @@ export default function AuditClient() {
         </p>
       </form>
 
-      {pending && <AuditLoading url={submitted} />}
+      {pending && <AuditLoading url={submitted} warm={warm} />}
       {!pending && error && (
         <div
           role="alert"
-          className="max-w-2xl bg-error-container px-5 py-4 ds-body-md text-error"
+          className="flex max-w-2xl flex-col items-start gap-4 bg-error-container px-5 py-4 ds-body-md text-error"
         >
-          {error}
+          <p>{error}</p>
+          <Button variant="ghost" onClick={() => start(submitted)}>
+            Try again
+          </Button>
         </div>
       )}
       {!pending && report && <AuditReportView report={report} />}
