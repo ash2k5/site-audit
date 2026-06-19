@@ -1,7 +1,13 @@
 import { Loader2 } from "lucide-react";
 import { displayUrl } from "../lib/format";
 
-export default function AuditLoading({ url }: { url: string }) {
+export default function AuditLoading({
+  url,
+  warm,
+}: {
+  url: string;
+  warm: boolean;
+}) {
   return (
     <div
       aria-live="polite"
@@ -10,12 +16,13 @@ export default function AuditLoading({ url }: { url: string }) {
       <div className="flex items-center gap-3 text-on-surface">
         <Loader2 className="size-5 animate-spin text-primary" aria-hidden />
         <span className="font-display ds-headline-md">
-          Auditing {displayUrl(url)}
+          {warm ? `Auditing ${displayUrl(url)}` : "Waking the audit engine"}
         </span>
       </div>
       <p className="ds-body-sm text-on-surface-variant">
-        Scraping the page, measuring Core Web Vitals, and analyzing with the
-        model. This usually takes 30 to 60 seconds.
+        {warm
+          ? "Scraping the page, measuring Core Web Vitals, and analyzing with the model. This usually takes 30 to 60 seconds."
+          : "The audit server sleeps after a spell of inactivity. Waking it can take up to a minute; the audit runs as soon as it's up."}
       </p>
     </div>
   );

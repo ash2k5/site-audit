@@ -28,6 +28,22 @@ export class ApiError extends Error {
   }
 }
 
+// The Render dyno sleeps after ~15 min idle and takes 30-60s to cold start.
+// Pinging /healthz on page load wakes it while the user reads and types, so the
+// cold start is off the audit's critical path. Best-effort: resolves true once
+// the backend answers, false if it stays unreachable within the window.
+export async function wakeBackend(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/healthz`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(90_000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function detailFrom(res: Response, fallback: string): Promise<string> {
   try {
     const body = (await res.json()) as { detail?: unknown };

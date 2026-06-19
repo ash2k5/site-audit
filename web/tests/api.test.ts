@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { ApiError, runAuditReport } from "../src/lib/api";
+import { ApiError, runAuditReport, wakeBackend } from "../src/lib/api";
 
 const fetchMock = vi.fn();
 
@@ -51,5 +51,26 @@ describe("runAuditReport", () => {
     expect(err).toBeInstanceOf(ApiError);
     expect(err.status).toBe(502);
     expect(err.message).toBe("Audit failed (502)");
+  });
+});
+
+describe("wakeBackend", () => {
+  test("pings /healthz and resolves true when the backend answers", async () => {
+    fetchMock.mockResolvedValue({ ok: true });
+
+    const ok = await wakeBackend();
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/healthz");
+    expect(ok).toBe(true);
+  });
+
+  test("resolves false when the backend responds not-ok", async () => {
+    fetchMock.mockResolvedValue({ ok: false });
+    expect(await wakeBackend()).toBe(false);
+  });
+
+  test("resolves false when the backend is unreachable", async () => {
+    fetchMock.mockRejectedValue(new Error("network down"));
+    expect(await wakeBackend()).toBe(false);
   });
 });
