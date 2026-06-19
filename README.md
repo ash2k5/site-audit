@@ -35,6 +35,20 @@ cp .env.example .env
 npm run dev
 ```
 
+## Run with Docker
+
+Runs the whole app in containers, Chromium included (Docker Desktop must be running). Put your `GROQ_API_KEY` in `api/.env` first.
+
+```bash
+docker compose up --build
+```
+
+Production build:
+
+```bash
+docker compose -f compose.prod.yaml up --build
+```
+
 ## Tests
 
 ```bash
