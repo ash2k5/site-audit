@@ -1,0 +1,39 @@
+name: site-audit
+
+services:
+  api:
+    build: ./api
+    command: uvicorn site_audit.web:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - path: ./api/.env
+        required: false
+    environment:
+      PORT: "8000"
+      ALLOWED_ORIGINS: http://localhost:3000
+      PLAYWRIGHT_NO_SANDBOX: "1"
+      PYTHONPATH: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api/site_audit:/app/site_audit
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./web
+      target: dev
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      api:
+        condition: service_healthy
