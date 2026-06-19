@@ -4,7 +4,7 @@ Give it a URL and it scrapes the page, pulls Google PageSpeed metrics, and has a
 SEO, performance, technical health, and content into a report. Read it in the browser or
 download a PDF.
 
-https://site-audit-web-ecru.vercel.app
+https://webaudit.ask2k5.com
 
 ## Run locally
 
