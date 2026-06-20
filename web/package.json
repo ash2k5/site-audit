@@ -13,9 +13,9 @@
   "dependencies": {
     "@ash2k5/ui": "^1.0.1",
     "lucide-react": "^0.562.0",
-    "next": "16.2.7",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -26,7 +26,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9",
-    "eslint-config-next": "16.2.7",
+    "eslint-config-next": "16.2.9",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^6.0.3",
